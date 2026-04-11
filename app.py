@@ -35,6 +35,9 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if session.get('admin_logged_in'):
+        return redirect(url_for('dashboard'))
+        
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -97,11 +100,18 @@ def update_profile():
         background_picture_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         background_picture_name = filename
         
+    tiktok_url = request.form.get('tiktok_url')
+    instagram_url = request.form.get('instagram_url')
+    facebook_url = request.form.get('facebook_url')
+    
     # Update DB
     database.update_settings(
         profile_name=profile_name if profile_name else None,
         profile_picture=profile_picture_name,
-        background_picture=background_picture_name
+        background_picture=background_picture_name,
+        tiktok_url=tiktok_url,
+        instagram_url=instagram_url,
+        facebook_url=facebook_url
     )
     
     flash('Profil berhasil diperbarui!', 'success')

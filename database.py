@@ -16,9 +16,20 @@ def init_db():
             id INTEGER PRIMARY KEY DEFAULT 1,
             profile_name TEXT NOT NULL,
             profile_picture TEXT,
-            background_picture TEXT
+            background_picture TEXT,
+            tiktok_url TEXT,
+            instagram_url TEXT,
+            facebook_url TEXT
         )
     ''')
+    
+    # Simple migration to add columns if they don't exist
+    try:
+        conn.execute('ALTER TABLE settings ADD COLUMN tiktok_url TEXT')
+        conn.execute('ALTER TABLE settings ADD COLUMN instagram_url TEXT')
+        conn.execute('ALTER TABLE settings ADD COLUMN facebook_url TEXT')
+    except sqlite3.OperationalError:
+        pass
     
     # Create Links Table
     conn.execute('''
@@ -46,9 +57,9 @@ def get_settings():
     conn = get_db_connection()
     settings = conn.execute('SELECT * FROM settings WHERE id = 1').fetchone()
     conn.close()
-    return settings
+    return dict(settings) if settings else None
 
-def update_settings(profile_name=None, profile_picture=None, background_picture=None):
+def update_settings(profile_name=None, profile_picture=None, background_picture=None, tiktok_url=None, instagram_url=None, facebook_url=None):
     conn = get_db_connection()
     if profile_name is not None:
         conn.execute('UPDATE settings SET profile_name = ? WHERE id = 1', (profile_name,))
@@ -56,6 +67,12 @@ def update_settings(profile_name=None, profile_picture=None, background_picture=
         conn.execute('UPDATE settings SET profile_picture = ? WHERE id = 1', (profile_picture,))
     if background_picture is not None:
         conn.execute('UPDATE settings SET background_picture = ? WHERE id = 1', (background_picture,))
+    if tiktok_url is not None:
+        conn.execute('UPDATE settings SET tiktok_url = ? WHERE id = 1', (tiktok_url,))
+    if instagram_url is not None:
+        conn.execute('UPDATE settings SET instagram_url = ? WHERE id = 1', (instagram_url,))
+    if facebook_url is not None:
+        conn.execute('UPDATE settings SET facebook_url = ? WHERE id = 1', (facebook_url,))
     conn.commit()
     conn.close()
 
