@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"/>
+</head>
+<body class="admin-body">
+    <div class="glass-overlay"></div>
+    <div class="container dashboard-container glass-panel animate-entry">
+        
+        <header class="dashboard-header mb-3">
+            <h2>Admin Dashboard</h2>
+            <div class="header-actions">
+                <a href="{{ url_for('index') }}" class="glass-button small-btn">Kembali ke Website Utama</a>
+                <a href="{{ url_for('logout') }}" class="glass-button small-btn danger-btn">Logout</a>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="dashboard-grid">
+            <section class="glass-card p-2">
+                <h3>Pengaturan Profil</h3>
+                <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data" class="dashboard-form mt-2">
+                    <div class="form-group">
+                        <label>Nama Profil</label>
+                        <input type="text" name="profile_name" value="{{ settings['profile_name'] if settings else 'Camrta_potret_' }}" class="glass-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Foto Profil Baru <small>(opsional)</small></label>
+                        <input type="file" id="profile_picture_input" name="profile_picture" accept="image/*" class="glass-input file-input">
+                        <input type="hidden" id="cropped_profile_b64" name="cropped_profile_b64">
+                        {% if settings and settings['profile_picture'] %}
+                        <small class="text-muted mt-1 d-block" id="profile_status_text">Foto saat ini: {{ settings['profile_picture'] }}</small>
+                        {% else %}
+                        <small class="text-muted mt-1 d-block" id="profile_status_text"></small>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>Background Baru <small>(opsional)</small></label>
+                        <input type="file" name="background_picture" accept="image/*" class="glass-input file-input">
+                        {% if settings and settings['background_picture'] %}
+                        <small class="text-muted mt-1 d-block">Background saat ini: {{ settings['background_picture'] }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="glass-button primary-btn hover-glow mt-1">Simpan Perubahan</button>
+                </form>
+            </section>
+
+            <section class="glass-card p-2">
+                <h3>Kelola Link</h3>
+                
+                <form method="POST" action="{{ url_for('add_link') }}" class="dashboard-form mt-2 mb-3">
+                    <div class="form-group">
+                        <label>Judul Link</label>
+                        <input type="text" name="title" class="glass-input" required placeholder="Contoh: Instagram">
+                    </div>
+                    <div class="form-group">
+                        <label>URL (Link)</label>
+                        <input type="url" name="url" class="glass-input" required placeholder="https://...">
+                    </div>
+                    <button type="submit" class="glass-button primary-btn hover-glow">Tambah Link</button>
+                </form>
+
+                <hr class="glass-hr mb-2">
+                
+                <div class="links-list">
+                    {% if links %}
+                        {% for link in links %}
+                        <div class="link-edit-item glass-card mb-1">
+                            <div class="link-info">
+                                <strong>{{ link['title'] }}</strong>
+                                <span class="text-muted text-sm">{{ link['url'][:30] }}...</span>
+                            </div>
+                            <div class="link-actions">
+                                <a href="{{ url_for('delete_link', link_id=link['id']) }}" class="glass-button small-btn danger-btn" onclick="return confirm('Yakin ingin menghapus link ini?')">Hapus</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">Belum ada link.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- Crop Modal -->
+    <div id="cropModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; flex-direction: column;">
+        <div style="background: rgba(20,20,20,0.95); padding: 20px; border-radius: 12px; max-width: 90%; max-height: 90%; border: 1px solid rgba(255,255,255,0.2);">
+            <h3 class="text-center mb-2">Crop Foto Profil</h3>
+            <div style="max-width: 400px; max-height: 400px; margin: 0 auto; overflow: hidden; background: #000;">
+                <img id="cropImage" style="max-width: 100%; display: block;">
+            </div>
+            <div class="mt-2 text-center">
+                <button type="button" id="btnCancelCrop" class="glass-button small-btn danger-btn" style="display:inline-block; margin-right: 10px;">Batal</button>
+                <button type="button" id="btnSaveCrop" class="glass-button small-btn primary-btn" style="display:inline-block;">Terapkan Crop</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cropper.js Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script>
+        const fileInput = document.getElementById('profile_picture_input');
+        const cropModal = document.getElementById('cropModal');
+        const cropImage = document.getElementById('cropImage');
+        const btnCancelCrop = document.getElementById('btnCancelCrop');
+        const btnSaveCrop = document.getElementById('btnSaveCrop');
+        const hiddenB64Input = document.getElementById('cropped_profile_b64');
+        const statusText = document.getElementById('profile_status_text');
+        let cropper = null;
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    cropImage.src = event.target.result;
+                    cropModal.style.display = 'flex';
+                    
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    
+                    cropper = new Cropper(cropImage, {
+                        aspectRatio: 1, // 1:1 for circular profile picture
+                        viewMode: 1,
+                        autoCropArea: 1,
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        btnCancelCrop.addEventListener('click', function() {
+            cropModal.style.display = 'none';
+            fileInput.value = ''; 
+            hiddenB64Input.value = '';
+            if (cropper) cropper.destroy();
+            if (statusText) {
+                statusText.textContent = "Crop dibatalkan.";
+                statusText.style.color = "";
+            }
+        });
+
+        btnSaveCrop.addEventListener('click', function() {
+            if (cropper) {
+                const canvas = cropper.getCroppedCanvas({
+                    width: 400,
+                    height: 400
+                });
+                hiddenB64Input.value = canvas.toDataURL('image/png');
+                cropModal.style.display = 'none';
+                
+                if (statusText) {
+                    statusText.textContent = "✓ Foto profil telah di-crop dan siap disimpan.";
+                    statusText.style.color = "#4ECDC4";
+                }
+            }
+        });
+    </script>
+</body>
+</html>

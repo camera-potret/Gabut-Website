@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ settings['profile_name'] if settings else 'Camrta_potret_' }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            {% if settings and settings['background_picture'] %}
+            background-image: url("{{ url_for('static', filename='uploads/' + settings['background_picture']) }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            {% endif %}
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-overlay"></div>
+    <div class="container container-sm profile-container glass-panel animate-entry">
+        
+        <header class="profile-header">
+            <div class="profile-pic-container">
+                {% if settings and settings['profile_picture'] %}
+                    <img src="{{ url_for('static', filename='uploads/' + settings['profile_picture']) }}" alt="Profile Picture" class="profile-pic">
+                {% else %}
+                    <div class="profile-pic placeholder-pic"></div>
+                {% endif %}
+            </div>
+            <h1 class="profile-name">{{ settings['profile_name'] if settings else 'Camrta_potret_' }}</h1>
+        </header>
+
+        <main class="links-container">
+            {% if links %}
+                {% for link in links %}
+                <a href="{{ link['url'] }}" class="link-item glass-button hover-glow" target="_blank" rel="noopener noreferrer">
+                    <span>{{ link['title'] }}</span>
+                </a>
+                {% endfor %}
+            {% else %}
+                <p class="text-center text-muted">Belum ada link yang ditambahkan.</p>
+            {% endif %}
+        </main>
+        
+        <div class="footer-admin">
+            <a href="{{ url_for('login') }}" class="admin-login-link">Dashboard Admin</a>
+        </div>
+    </div>
+
+    {% if not (settings and settings['background_picture']) %}
+    <div class="gradient-bg">
+        <svg xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <filter id="goo">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8" result="goo" />
+                    <feBlend in="SourceGraphic" in2="goo" />
+                </filter>
+            </defs>
+        </svg>
+        <div class="gradients-container">
+            <div class="g1"></div>
+            <div class="g2"></div>
+            <div class="g3"></div>
+            <div class="g4"></div>
+            <div class="g5"></div>
+        </div>
+    </div>
+    {% endif %}
+</body>
+</html>
