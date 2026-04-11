@@ -140,11 +140,12 @@
 
                 <hr class="glass-hr mb-2">
                 
-                <div class="links-list">
+                <div class="links-list" id="sortable-links">
                     {% if links %}
                         {% for link in links %}
-                        <div class="link-edit-item glass-card mb-1" style="padding: 1rem;">
+                        <div class="link-edit-item glass-card mb-1" data-id="{{ link['id'] }}" style="padding: 1rem; display: flex; align-items: center; justify-content: space-between;">
                             <div class="link-info" style="display: flex; align-items: center; gap: 15px;">
+                                <i class="ph ph-dots-six-vertical drag-handle" style="cursor: grab; font-size: 1.5rem; color: #888;"></i>
                                 <i class="ph ph-link" style="color: #4ECDC4; font-size: 1.5rem;"></i>
                                 <div>
                                     <strong style="display: block; font-size: 1.1rem;">{{ link['title'] }}</strong>
@@ -186,6 +187,16 @@
 
     <!-- Cropper.js Script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .drag-handle:hover {
+            color: #fff !important;
+        }
+    </style>
     <script>
         const fileInput = document.getElementById('profile_picture_input');
         const cropModal = document.getElementById('cropModal');
@@ -196,54 +207,94 @@
         const statusText = document.getElementById('profile_status_text');
         let cropper = null;
 
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    cropImage.src = event.target.result;
-                    cropModal.style.display = 'flex';
-                    
-                    if (cropper) {
-                        cropper.destroy();
-                    }
-                    
-                    cropper = new Cropper(cropImage, {
-                        aspectRatio: 1, // 1:1 for circular profile picture
-                        viewMode: 1,
-                        autoCropArea: 1,
-                    });
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        btnCancelCrop.addEventListener('click', function() {
-            cropModal.style.display = 'none';
-            fileInput.value = ''; 
-            hiddenB64Input.value = '';
-            if (cropper) cropper.destroy();
-            if (statusText) {
-                statusText.innerHTML = "<i class='ph ph-x-circle' style='color:#FF6B6B;'></i> Crop dibatalkan.";
-                statusText.style.color = "";
-            }
-        });
-
-        btnSaveCrop.addEventListener('click', function() {
-            if (cropper) {
-                const canvas = cropper.getCroppedCanvas({
-                    width: 400,
-                    height: 400
-                });
-                hiddenB64Input.value = canvas.toDataURL('image/png');
-                cropModal.style.display = 'none';
-                
-                if (statusText) {
-                    statusText.innerHTML = "<i class='ph ph-check-circle' style='color:#4ECDC4;'></i> Foto profil telah di-crop dan siap disimpan.";
-                    statusText.style.color = "#4ECDC4";
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        cropImage.src = event.target.result;
+                        cropModal.style.display = 'flex';
+                        
+                        if (cropper) {
+                            cropper.destroy();
+                        }
+                        
+                        cropper = new Cropper(cropImage, {
+                            aspectRatio: 1, // 1:1 for circular profile picture
+                            viewMode: 1,
+                            autoCropArea: 1,
+                        });
+                    };
+                    reader.readAsDataURL(file);
                 }
-            }
-        });
+            });
+        }
+
+        if (btnCancelCrop) {
+            btnCancelCrop.addEventListener('click', function() {
+                cropModal.style.display = 'none';
+                fileInput.value = ''; 
+                hiddenB64Input.value = '';
+                if (cropper) cropper.destroy();
+                if (statusText) {
+                    statusText.innerHTML = "<i class='ph ph-x-circle' style='color:#FF6B6B;'></i> Crop dibatalkan.";
+                    statusText.style.color = "";
+                }
+            });
+        }
+
+        if (btnSaveCrop) {
+            btnSaveCrop.addEventListener('click', function() {
+                if (cropper) {
+                    const canvas = cropper.getCroppedCanvas({
+                        width: 400,
+                        height: 400
+                    });
+                    hiddenB64Input.value = canvas.toDataURL('image/png');
+                    cropModal.style.display = 'none';
+                    
+                    if (statusText) {
+                        statusText.innerHTML = "<i class='ph ph-check-circle' style='color:#4ECDC4;'></i> Foto profil telah di-crop dan siap disimpan.";
+                        statusText.style.color = "#4ECDC4";
+                    }
+                }
+            });
+        }
+
+        // SortableJS init
+        const sortableList = document.getElementById('sortable-links');
+        if (sortableList) {
+            new Sortable(sortableList, {
+                animation: 150,
+                handle: '.drag-handle',
+                ghostClass: 'sortable-ghost',
+                onEnd: function (evt) {
+                    const newOrder = [];
+                    const items = sortableList.querySelectorAll('.link-edit-item');
+                    items.forEach(item => {
+                        newOrder.push(item.getAttribute('data-id'));
+                    });
+                    
+                    fetch("{{ url_for('reorder_links') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({order: newOrder})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status !== 'success') {
+                            alert('Gagal menyimpan urutan baru.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
+            });
+        }
     </script>
 </body>
 </html>

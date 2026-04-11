@@ -140,5 +140,17 @@ def delete_link(link_id):
     flash('Link berhasil dihapus!', 'success')
     return redirect(url_for('dashboard'))
 
+@app.route('/reorder_links', methods=['POST'])
+def reorder_links():
+    if not session.get('admin_logged_in'):
+        return {"status": "error", "message": "Unauthorized"}, 401
+        
+    data = request.get_json()
+    order = data.get('order', [])
+    
+    database.update_links_order(order)
+    
+    return {"status": "success"}
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

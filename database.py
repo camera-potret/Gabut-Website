@@ -100,5 +100,12 @@ def update_link(link_id, title, url):
     conn.commit()
     conn.close()
 
+def update_links_order(order_list):
+    conn = get_db_connection()
+    for index, link_id in enumerate(order_list):
+        conn.execute('UPDATE links SET order_num = ? WHERE id = ?', (index, link_id))
+    conn.commit()
+    conn.close()
+
 if __name__ == '__main__':
     init_db()
