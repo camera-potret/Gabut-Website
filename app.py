@@ -88,48 +88,22 @@ def update_profile():
     cropped_b64 = request.form.get('cropped_profile_b64')
     
     if cropped_b64:
-        try:
-            head, data = cropped_b64.split(',', 1)
-            if IMGBB_API_KEY:
-                # Send to ImgBB
-                resp = requests.post("https://api.imgbb.com/1/upload", data={"key": IMGBB_API_KEY, "image": data})
-                if resp.status_code == 200:
-                    profile_picture_name = resp.json()['data']['url']
-            else:
-                # Fallback ke penyimpanan lokal jika tidak ada kunci ImgBB
-                img_data = base64.b64decode(data)
-                filename = f"profile_crop_{uuid.uuid4().hex[:8]}.png"
-                with open(os.path.join(app.config['UPLOAD_FOLDER'], filename), 'wb') as f:
-                    f.write(img_data)
-                profile_picture_name = filename
-        except Exception as e:
-            print("Error saving crop:", e)
+        # Pindah ke database! Teks Data URI `cropped_b64` disimpan langsung di dalam cloud.
+        profile_picture_name = cropped_b64
     else:
         profile_picture_file = request.files.get('profile_picture')
         if profile_picture_file and allowed_file(profile_picture_file.filename):
-            if IMGBB_API_KEY:
-                b64_img = base64.b64encode(profile_picture_file.read()).decode('utf-8')
-                resp = requests.post("https://api.imgbb.com/1/upload", data={"key": IMGBB_API_KEY, "image": b64_img})
-                if resp.status_code == 200:
-                    profile_picture_name = resp.json()['data']['url']
-            else:
-                filename = secure_filename('profile_' + profile_picture_file.filename)
-                profile_picture_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                profile_picture_name = filename
+            file_ext = profile_picture_file.filename.rsplit('.', 1)[1].lower()
+            b64_img = base64.b64encode(profile_picture_file.read()).decode('utf-8')
+            profile_picture_name = f"data:image/{file_ext};base64,{b64_img}"
         
     # Handle Background Picture
     background_picture_file = request.files.get('background_picture')
     background_picture_name = None
     if background_picture_file and allowed_file(background_picture_file.filename):
-        if IMGBB_API_KEY:
-            b64_img = base64.b64encode(background_picture_file.read()).decode('utf-8')
-            resp = requests.post("https://api.imgbb.com/1/upload", data={"key": IMGBB_API_KEY, "image": b64_img})
-            if resp.status_code == 200:
-                background_picture_name = resp.json()['data']['url']
-        else:
-             filename = secure_filename('bg_' + background_picture_file.filename)
-             background_picture_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-             background_picture_name = filename
+        file_ext = background_picture_file.filename.rsplit('.', 1)[1].lower()
+        b64_img = base64.b64encode(background_picture_file.read()).decode('utf-8')
+        background_picture_name = f"data:image/{file_ext};base64,{b64_img}"
         
     tiktok_url = request.form.get('tiktok_url')
     instagram_url = request.form.get('instagram_url')

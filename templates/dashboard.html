@@ -73,7 +73,10 @@
                         </div>
                         <input type="hidden" id="cropped_profile_b64" name="cropped_profile_b64">
                         {% if settings and settings['profile_picture'] %}
-                        <small class="text-muted mt-1 d-block" id="profile_status_text">Foto saat ini: {{ settings['profile_picture'] }}</small>
+                        <small class="text-muted mt-1 d-block" id="profile_status_text">
+                            Foto tersimpan: <br>
+                            <img src="{{ settings['profile_picture'] }}" width="50" height="50" style="border-radius: 50%; margin-top: 5px; object-fit: cover;">
+                        </small>
                         {% else %}
                         <small class="text-muted mt-1 d-block" id="profile_status_text"></small>
                         {% endif %}
@@ -86,7 +89,10 @@
                             <input type="file" name="background_picture" accept="image/*" class="glass-input file-input" style="padding-left: 40px; padding-top: 13px;">
                         </div>
                         {% if settings and settings['background_picture'] %}
-                        <small class="text-muted mt-1 d-block">Background saat ini: {{ settings['background_picture'] }}</small>
+                        <small class="text-muted mt-1 d-block">
+                            Background tersimpan: <br>
+                            <img src="{{ settings['background_picture'] }}" height="50" style="border-radius: 4px; margin-top: 5px; object-fit: cover;">
+                        </small>
                         {% endif %}
                     </div>
 

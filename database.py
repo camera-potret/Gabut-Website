@@ -1,16 +1,33 @@
 import os
+import sqlite3
+from urllib.parse import urlparse, unquote
 
 POSTGRES_URL = os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL')
 
-if POSTGRES_URL:
-    import psycopg2
-    from psycopg2.extras import RealDictCursor
-else:
-    import sqlite3
-
 def get_connection():
     if POSTGRES_URL:
-        conn = psycopg2.connect(POSTGRES_URL)
+        import pg8000.dbapi
+        
+        url_str = POSTGRES_URL
+        if url_str.startswith('prisma://'):
+            # Some prisma postgres strings have extra path queries, urlparse will handle them mostly, but scheme must be normalized
+            url_str = url_str.replace('prisma://', 'postgres://', 1)
+            
+        parsed = urlparse(url_str)
+        user = unquote(parsed.username) if parsed.username else 'postgres'
+        password = unquote(parsed.password) if parsed.password else ''
+        host = parsed.hostname or 'localhost'
+        port = parsed.port or 5432
+        dbname = parsed.path.lstrip('/') or 'postgres'
+        
+        # Construct ssl context if needed (pg8000 handles basic ssl upgrade automatically on AWS/Vercel)
+        conn = pg8000.dbapi.connect(
+            user=user,
+            password=password,
+            host=host,
+            port=port,
+            database=dbname
+        )
         return conn, 'postgres'
     else:
         conn = sqlite3.connect('database.db')
@@ -63,9 +80,9 @@ def init_db():
         ''')
 
     # Seed Default Settings if not exists
-    cursor.execute("SELECT COUNT(*) as cnt FROM settings")
+    cursor.execute("SELECT COUNT(*) FROM settings")
     row = cursor.fetchone()
-    count = row['cnt'] if isinstance(row, dict) else row[0]
+    count = row['cnt'] if hasattr(row, 'keys') and 'cnt' in row.keys() else row[0]
     
     if count == 0:
         if db_type == 'postgres':
@@ -86,15 +103,16 @@ def query_select(sql, params=()):
     conn, db_type = get_connection()
     if db_type == 'postgres':
         sql = sql.replace('?', '%s')
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor = conn.cursor()
     else:
         cursor = conn.cursor()
         
     cursor.execute(sql, params)
-    docs = [dict(row) for row in cursor.fetchall()]
+    
+    columns = [col[0] for col in cursor.description]
+    docs = [dict(zip(columns, row)) for row in cursor.fetchall()]
     conn.close()
     
-    # ensure 'id' is a string for compatibility with mongo-based code if needed
     for doc in docs:
         if 'id' in doc:
             doc['id'] = str(doc['id'])
@@ -138,7 +156,6 @@ def update_settings(profile_name=None, profile_picture=None, background_picture=
         params.append(facebook_url)
         
     if fields:
-        # Assuming single row settings
         sql = "UPDATE settings SET " + ", ".join(fields)
         query_execute(sql, tuple(params))
 
