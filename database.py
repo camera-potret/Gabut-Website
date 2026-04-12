@@ -1,6 +1,6 @@
 import os
 
-POSTGRES_URL = os.environ.get('POSTGRES_URL')
+POSTGRES_URL = os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL')
 
 if POSTGRES_URL:
     import psycopg2
