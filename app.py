@@ -4,13 +4,20 @@ import base64
 import uuid
 from werkzeug.utils import secure_filename
 import database
+import requests
+
+IMGBB_API_KEY = os.environ.get('IMGBB_API_KEY')
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_key_make_sure_to_change_for_production'
 
 # Ensure upload directory exists
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+try:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+except OSError:
+    UPLOAD_FOLDER = '/tmp/uploads'
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Allowed extensions
@@ -26,6 +33,11 @@ ADMIN_PASS = 'bibintolol64'
 # Initialize DB on start
 with app.app_context():
     database.init_db()
+
+@app.route('/static/uploads/<filename>')
+def serve_uploads(filename):
+    from flask import send_from_directory
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/')
 def index():
@@ -78,27 +90,46 @@ def update_profile():
     if cropped_b64:
         try:
             head, data = cropped_b64.split(',', 1)
-            img_data = base64.b64decode(data)
-            filename = f"profile_crop_{uuid.uuid4().hex[:8]}.png"
-            with open(os.path.join(app.config['UPLOAD_FOLDER'], filename), 'wb') as f:
-                f.write(img_data)
-            profile_picture_name = filename
+            if IMGBB_API_KEY:
+                # Send to ImgBB
+                resp = requests.post("https://api.imgbb.com/1/upload", data={"key": IMGBB_API_KEY, "image": data})
+                if resp.status_code == 200:
+                    profile_picture_name = resp.json()['data']['url']
+            else:
+                # Fallback ke penyimpanan lokal jika tidak ada kunci ImgBB
+                img_data = base64.b64decode(data)
+                filename = f"profile_crop_{uuid.uuid4().hex[:8]}.png"
+                with open(os.path.join(app.config['UPLOAD_FOLDER'], filename), 'wb') as f:
+                    f.write(img_data)
+                profile_picture_name = filename
         except Exception as e:
             print("Error saving crop:", e)
     else:
         profile_picture_file = request.files.get('profile_picture')
         if profile_picture_file and allowed_file(profile_picture_file.filename):
-            filename = secure_filename('profile_' + profile_picture_file.filename)
-            profile_picture_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            profile_picture_name = filename
+            if IMGBB_API_KEY:
+                b64_img = base64.b64encode(profile_picture_file.read()).decode('utf-8')
+                resp = requests.post("https://api.imgbb.com/1/upload", data={"key": IMGBB_API_KEY, "image": b64_img})
+                if resp.status_code == 200:
+                    profile_picture_name = resp.json()['data']['url']
+            else:
+                filename = secure_filename('profile_' + profile_picture_file.filename)
+                profile_picture_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                profile_picture_name = filename
         
     # Handle Background Picture
     background_picture_file = request.files.get('background_picture')
     background_picture_name = None
     if background_picture_file and allowed_file(background_picture_file.filename):
-        filename = secure_filename('bg_' + background_picture_file.filename)
-        background_picture_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        background_picture_name = filename
+        if IMGBB_API_KEY:
+            b64_img = base64.b64encode(background_picture_file.read()).decode('utf-8')
+            resp = requests.post("https://api.imgbb.com/1/upload", data={"key": IMGBB_API_KEY, "image": b64_img})
+            if resp.status_code == 200:
+                background_picture_name = resp.json()['data']['url']
+        else:
+             filename = secure_filename('bg_' + background_picture_file.filename)
+             background_picture_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+             background_picture_name = filename
         
     tiktok_url = request.form.get('tiktok_url')
     instagram_url = request.form.get('instagram_url')
@@ -131,7 +162,7 @@ def add_link():
         
     return redirect(url_for('dashboard'))
 
-@app.route('/delete_link/<int:link_id>')
+@app.route('/delete_link/<string:link_id>')
 def delete_link(link_id):
     if not session.get('admin_logged_in'):
         return redirect(url_for('login'))

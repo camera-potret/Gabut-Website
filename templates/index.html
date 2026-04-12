@@ -11,7 +11,7 @@
         body {
             background-color: #121212;
             {% if settings and settings['background_picture'] %}
-            background-image: url("{{ url_for('static', filename='uploads/' + settings['background_picture']) }}");
+            background-image: url("{{ settings['background_picture'] if settings['background_picture'].startswith('http') else url_for('static', filename='uploads/' + settings['background_picture']) }}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -26,7 +26,7 @@
         <header class="profile-header">
             <div class="profile-pic-container">
                 {% if settings and settings['profile_picture'] %}
-                    <img src="{{ url_for('static', filename='uploads/' + settings['profile_picture']) }}" alt="Profile Picture" class="profile-pic">
+                    <img src="{{ settings['profile_picture'] if settings['profile_picture'].startswith('http') else url_for('static', filename='uploads/' + settings['profile_picture']) }}" alt="Profile Picture" class="profile-pic">
                 {% else %}
                     <div class="profile-pic placeholder-pic"></div>
                 {% endif %}
