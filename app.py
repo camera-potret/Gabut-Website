@@ -145,6 +145,20 @@ def delete_link(link_id):
     flash('Link berhasil dihapus!', 'success')
     return redirect(url_for('dashboard'))
 
+@app.route('/edit_link/<string:link_id>', methods=['POST'])
+def edit_link(link_id):
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('login'))
+        
+    title = request.form.get('title')
+    url = request.form.get('url')
+    
+    if title and url:
+        database.update_link(link_id, title, url)
+        flash('Link berhasil diperbarui!', 'success')
+        
+    return redirect(url_for('dashboard'))
+
 @app.route('/reorder_links', methods=['POST'])
 def reorder_links():
     if not session.get('admin_logged_in'):

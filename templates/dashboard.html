@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
+
 <body class="admin-body">
     <div class="glass-overlay"></div>
     <div class="container dashboard-container animate-entry" style="max-width: 1400px;">
-        
+
         <header class="dashboard-header-modern">
             <div class="dashboard-title-area">
                 <h2>👋 Selamat Datang di Dashboard</h2>
@@ -21,17 +23,19 @@
                 </div>
             </div>
             <div class="header-actions" style="display: flex; gap: 10px;">
-                <a href="{{ url_for('index') }}" class="glass-button small-btn btn-icon"><i class="ph ph-globe"></i> Lihat Website</a>
-                <a href="{{ url_for('logout') }}" class="glass-button small-btn danger-btn btn-icon"><i class="ph ph-sign-out"></i> Logout</a>
+                <a href="{{ url_for('index') }}" class="glass-button small-btn btn-icon"><i class="ph ph-globe"></i>
+                    Lihat Website</a>
+                <a href="{{ url_for('logout') }}" class="glass-button small-btn danger-btn btn-icon"><i
+                        class="ph ph-sign-out"></i> Logout</a>
             </div>
         </header>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
         {% endwith %}
 
         <div class="stats-container">
@@ -54,28 +58,35 @@
         <div class="dashboard-grid">
             <!-- Profil Settings -->
             <section class="glass-card p-2" style="height: fit-content;">
-                <h3 style="display:flex; align-items:center; gap:8px; margin-bottom:1.5rem;"><i class="ph ph-identification-card" style="color:#4ECDC4; font-size:1.5rem;"></i> Pengaturan Profil</h3>
-                
-                <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data" class="dashboard-form">
+                <h3 style="display:flex; align-items:center; gap:8px; margin-bottom:1.5rem;"><i
+                        class="ph ph-identification-card" style="color:#4ECDC4; font-size:1.5rem;"></i> Pengaturan
+                    Profil</h3>
+
+                <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data"
+                    class="dashboard-form">
                     <div class="form-group">
                         <label>Nama Profil</label>
                         <div class="glass-input-group">
                             <i class="ph ph-user"></i>
-                            <input type="text" name="profile_name" value="{{ settings['profile_name'] if settings else 'Camrta_potret_' }}" class="glass-input">
+                            <input type="text" name="profile_name"
+                                value="{{ settings['profile_name'] if settings else 'Camrta_potret_' }}"
+                                class="glass-input">
                         </div>
                     </div>
-                    
+
                     <div class="form-group mt-2">
                         <label>Foto Profil Baru <small>(opsional)</small></label>
                         <div class="glass-input-group">
                             <i class="ph ph-image"></i>
-                            <input type="file" id="profile_picture_input" name="profile_picture" accept="image/*" class="glass-input file-input" style="padding-left: 40px; padding-top: 13px;">
+                            <input type="file" id="profile_picture_input" name="profile_picture" accept="image/*"
+                                class="glass-input file-input" style="padding-left: 40px; padding-top: 13px;">
                         </div>
                         <input type="hidden" id="cropped_profile_b64" name="cropped_profile_b64">
                         {% if settings and settings['profile_picture'] %}
                         <small class="text-muted mt-1 d-block" id="profile_status_text">
                             Foto tersimpan: <br>
-                            <img src="{{ settings['profile_picture'] }}" width="50" height="50" style="border-radius: 50%; margin-top: 5px; object-fit: cover;">
+                            <img src="{{ settings['profile_picture'] }}" width="50" height="50"
+                                style="border-radius: 50%; margin-top: 5px; object-fit: cover;">
                         </small>
                         {% else %}
                         <small class="text-muted mt-1 d-block" id="profile_status_text"></small>
@@ -86,12 +97,14 @@
                         <label>Background Baru <small>(opsional)</small></label>
                         <div class="glass-input-group">
                             <i class="ph ph-monitor"></i>
-                            <input type="file" name="background_picture" accept="image/*" class="glass-input file-input" style="padding-left: 40px; padding-top: 13px;">
+                            <input type="file" name="background_picture" accept="image/*" class="glass-input file-input"
+                                style="padding-left: 40px; padding-top: 13px;">
                         </div>
                         {% if settings and settings['background_picture'] %}
                         <small class="text-muted mt-1 d-block">
                             Background tersimpan: <br>
-                            <img src="{{ settings['background_picture'] }}" height="50" style="border-radius: 4px; margin-top: 5px; object-fit: cover;">
+                            <img src="{{ settings['background_picture'] }}" height="50"
+                                style="border-radius: 4px; margin-top: 5px; object-fit: cover;">
                         </small>
                         {% endif %}
                     </div>
@@ -100,38 +113,48 @@
                         <label>TikTok URL</label>
                         <div class="glass-input-group">
                             <i class="ph ph-tiktok-logo"></i>
-                            <input type="url" name="tiktok_url" value="{{ settings['tiktok_url'] if settings and settings.get('tiktok_url') else '' }}" class="glass-input" placeholder="https://www.tiktok.com/@...">
+                            <input type="url" name="tiktok_url"
+                                value="{{ settings['tiktok_url'] if settings and settings.get('tiktok_url') else '' }}"
+                                class="glass-input" placeholder="https://www.tiktok.com/@...">
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Instagram URL</label>
                         <div class="glass-input-group">
                             <i class="ph ph-instagram-logo"></i>
-                            <input type="url" name="instagram_url" value="{{ settings['instagram_url'] if settings and settings.get('instagram_url') else '' }}" class="glass-input" placeholder="https://instagram.com/...">
+                            <input type="url" name="instagram_url"
+                                value="{{ settings['instagram_url'] if settings and settings.get('instagram_url') else '' }}"
+                                class="glass-input" placeholder="https://instagram.com/...">
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Facebook URL</label>
                         <div class="glass-input-group">
                             <i class="ph ph-facebook-logo"></i>
-                            <input type="url" name="facebook_url" value="{{ settings['facebook_url'] if settings and settings.get('facebook_url') else '' }}" class="glass-input" placeholder="https://facebook.com/...">
+                            <input type="url" name="facebook_url"
+                                value="{{ settings['facebook_url'] if settings and settings.get('facebook_url') else '' }}"
+                                class="glass-input" placeholder="https://facebook.com/...">
                         </div>
                     </div>
-                    
-                    <button type="submit" class="glass-button primary-btn hover-glow mt-3 btn-icon"><i class="ph ph-floppy-disk"></i> Simpan Perubahan</button>
+
+                    <button type="submit" class="glass-button primary-btn hover-glow mt-3 btn-icon"><i
+                            class="ph ph-floppy-disk"></i> Simpan Perubahan</button>
                 </form>
             </section>
 
             <!-- Link Management -->
             <section class="glass-card p-2">
-                <h3 style="display:flex; align-items:center; gap:8px; margin-bottom:1.5rem;"><i class="ph ph-link-simple-horizontal" style="color:#FF6B6B; font-size:1.5rem;"></i> Kelola Link</h3>
-                
+                <h3 style="display:flex; align-items:center; gap:8px; margin-bottom:1.5rem;"><i
+                        class="ph ph-link-simple-horizontal" style="color:#FF6B6B; font-size:1.5rem;"></i> Kelola Link
+                </h3>
+
                 <form method="POST" action="{{ url_for('add_link') }}" class="dashboard-form mb-3">
                     <div class="form-group">
                         <label>Judul Link</label>
                         <div class="glass-input-group">
                             <i class="ph ph-text-t"></i>
-                            <input type="text" name="title" class="glass-input" required placeholder="Contoh: Instagram">
+                            <input type="text" name="title" class="glass-input" required
+                                placeholder="Contoh: Instagram">
                         </div>
                     </div>
                     <div class="form-group">
@@ -141,35 +164,54 @@
                             <input type="url" name="url" class="glass-input" required placeholder="https://...">
                         </div>
                     </div>
-                    <button type="submit" class="glass-button primary-btn hover-glow btn-icon"><i class="ph ph-plus-circle"></i> Tambah Link</button>
+                    <button type="submit" class="glass-button primary-btn hover-glow btn-icon"><i
+                            class="ph ph-plus-circle"></i> Tambah Link</button>
                 </form>
 
                 <hr class="glass-hr mb-2">
-                
+
                 <div class="links-list" id="sortable-links">
                     {% if links %}
-                        {% for link in links %}
-                        <div class="link-edit-item glass-card mb-1" data-id="{{ link['id'] }}" style="padding: 1rem; display: flex; align-items: center; justify-content: space-between;">
-                            <div class="link-info" style="display: flex; align-items: center; gap: 15px;">
-                                <i class="ph ph-dots-six-vertical drag-handle" style="cursor: grab; font-size: 1.5rem; color: #888;"></i>
-                                <i class="ph ph-link" style="color: #4ECDC4; font-size: 1.5rem;"></i>
-                                <div>
-                                    <strong style="display: block; font-size: 1.1rem;">{{ link['title'] }}</strong>
-                                    <span class="text-muted text-sm">{{ link['url'][:40] }}{{ '...' if link['url']|length > 40 else '' }}</span>
-                                </div>
-                            </div>
-                            <div class="link-actions">
-                                <a href="{{ url_for('delete_link', link_id=link['id']) }}" class="glass-button small-btn danger-btn btn-icon" style="margin: 0; padding: 0.4rem 0.8rem;" onclick="return confirm('Yakin ingin menghapus link ini?')">
-                                    <i class="ph ph-trash"></i> Hapus
-                                </a>
+                    {% for link in links %}
+                    <div class="link-edit-item glass-card mb-1" data-id="{{ link['id'] }}"
+                        style="padding: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                        <div class="link-info"
+                            style="display: flex; align-items: center; gap: 15px; cursor: pointer; flex: 1;"
+                            data-title="{{ link['title'] }}" data-url="{{ link['url'] }}"
+                            onclick="openEditModal('{{ url_for('edit_link', link_id=link['id']) }}', this.getAttribute('data-title'), this.getAttribute('data-url'))">
+                            <i class="ph ph-dots-six-vertical drag-handle"
+                                style="cursor: grab; font-size: 1.5rem; color: #888;"
+                                onclick="event.stopPropagation()"></i>
+                            <i class="ph ph-link" style="color: #4ECDC4; font-size: 1.5rem;"></i>
+                            <div>
+                                <strong style="display: block; font-size: 1.1rem;">{{ link['title'] }}</strong>
+                                <span class="text-muted text-sm">{{ link['url'][:40] }}{{ '...' if link['url']|length >
+                                    40 else '' }}</span>
                             </div>
                         </div>
-                        {% endfor %}
+                        <div class="link-actions" style="margin-left: 20px;">
+                            <button type="button" class="glass-button small-btn primary-btn btn-icon"
+                                style="margin: 0; padding: 0.4rem 0.8rem;" data-title="{{ link['title'] }}"
+                                data-url="{{ link['url'] }}"
+                                onclick="openEditModal('{{ url_for('edit_link', link_id=link['id']) }}', this.getAttribute('data-title'), this.getAttribute('data-url'))">
+                                <i class="ph ph-pencil-simple"></i> Edit
+                            </button>
+                            <a href="{{ url_for('delete_link', link_id=link['id']) }}"
+                                class="glass-button small-btn danger-btn btn-icon"
+                                style="margin: 0; padding: 0.4rem 0.8rem;"
+                                onclick="return confirm('Yakin ingin menghapus link ini?')">
+                                <i class="ph ph-trash"></i> Hapus
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
                     {% else %}
-                        <div style="text-align: center; padding: 2rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.2);">
-                            <i class="ph ph-empty" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 10px;"></i>
-                            <p class="text-muted">Belum ada link yang ditambahkan.</p>
-                        </div>
+                    <div
+                        style="text-align: center; padding: 2rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.2);">
+                        <i class="ph ph-empty"
+                            style="font-size: 3rem; color: var(--text-muted); margin-bottom: 10px;"></i>
+                        <p class="text-muted">Belum ada link yang ditambahkan.</p>
+                    </div>
                     {% endif %}
                 </div>
             </section>
@@ -178,16 +220,54 @@
     </div>
 
     <!-- Crop Modal -->
-    <div id="cropModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(5px);">
-        <div style="background: rgba(20,20,20,0.95); padding: 20px; border-radius: 16px; max-width: 90%; max-height: 90%; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <h3 class="text-center mb-2" style="display:flex; align-items:center; justify-content:center; gap:8px;"><i class="ph ph-crop"></i> Sesuaikan Foto Profil</h3>
-            <div style="max-width: 400px; max-height: 400px; margin: 0 auto; overflow: hidden; background: #000; border-radius: 8px;">
+    <div id="cropModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(5px);">
+        <div
+            style="background: rgba(20,20,20,0.95); padding: 20px; border-radius: 16px; max-width: 90%; max-height: 90%; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <h3 class="text-center mb-2" style="display:flex; align-items:center; justify-content:center; gap:8px;"><i
+                    class="ph ph-crop"></i> Sesuaikan Foto Profil</h3>
+            <div
+                style="max-width: 400px; max-height: 400px; margin: 0 auto; overflow: hidden; background: #000; border-radius: 8px;">
                 <img id="cropImage" style="max-width: 100%; display: block;">
             </div>
             <div class="mt-3 text-center" style="display: flex; gap: 10px; justify-content: center;">
-                <button type="button" id="btnCancelCrop" class="glass-button small-btn danger-btn btn-icon" style="margin:0;"><i class="ph ph-x"></i> Batal</button>
-                <button type="button" id="btnSaveCrop" class="glass-button small-btn primary-btn btn-icon" style="margin:0;"><i class="ph ph-check"></i> Terapkan</button>
+                <button type="button" id="btnCancelCrop" class="glass-button small-btn danger-btn btn-icon"
+                    style="margin:0;"><i class="ph ph-x"></i> Batal</button>
+                <button type="button" id="btnSaveCrop" class="glass-button small-btn primary-btn btn-icon"
+                    style="margin:0;"><i class="ph ph-check"></i> Terapkan</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Link Modal -->
+    <div id="editLinkModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(5px);">
+        <div
+            style="background: rgba(20,20,20,0.95); padding: 20px; border-radius: 16px; width: 90%; max-width: 500px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <h3 class="mb-2" style="display:flex; align-items:center; gap:8px;"><i class="ph ph-pencil-simple"></i> Edit
+                Link</h3>
+            <form id="editLinkForm" method="POST" action="">
+                <div class="form-group">
+                    <label>Judul Link</label>
+                    <div class="glass-input-group">
+                        <i class="ph ph-text-t"></i>
+                        <input type="text" id="edit_link_title" name="title" class="glass-input" required>
+                    </div>
+                </div>
+                <div class="form-group mt-2">
+                    <label>URL (Link)</label>
+                    <div class="glass-input-group">
+                        <i class="ph ph-link"></i>
+                        <input type="url" id="edit_link_url" name="url" class="glass-input" required>
+                    </div>
+                </div>
+                <div class="mt-3 text-center" style="display: flex; gap: 10px; justify-content: center;">
+                    <button type="button" onclick="closeEditModal()" class="glass-button small-btn danger-btn btn-icon"
+                        style="margin:0;"><i class="ph ph-x"></i> Batal</button>
+                    <button type="submit" class="glass-button small-btn primary-btn btn-icon" style="margin:0;"><i
+                            class="ph ph-check"></i> Simpan</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -199,11 +279,27 @@
             opacity: 0.4;
             background-color: rgba(255, 255, 255, 0.1);
         }
+
         .drag-handle:hover {
             color: #fff !important;
         }
     </style>
     <script>
+        function openEditModal(actionUrl, title, url) {
+            const modal = document.getElementById('editLinkModal');
+            const form = document.getElementById('editLinkForm');
+            const titleInput = document.getElementById('edit_link_title');
+            titleInput.value = title;
+            document.getElementById('edit_link_url').value = url;
+            form.action = actionUrl;
+            modal.style.display = 'flex';
+            setTimeout(() => titleInput.focus(), 50);
+        }
+
+        function closeEditModal() {
+            document.getElementById('editLinkModal').style.display = 'none';
+        }
+
         const fileInput = document.getElementById('profile_picture_input');
         const cropModal = document.getElementById('cropModal');
         const cropImage = document.getElementById('cropImage');
@@ -214,18 +310,18 @@
         let cropper = null;
 
         if (fileInput) {
-            fileInput.addEventListener('change', function(e) {
+            fileInput.addEventListener('change', function (e) {
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
-                    reader.onload = function(event) {
+                    reader.onload = function (event) {
                         cropImage.src = event.target.result;
                         cropModal.style.display = 'flex';
-                        
+
                         if (cropper) {
                             cropper.destroy();
                         }
-                        
+
                         cropper = new Cropper(cropImage, {
                             aspectRatio: 1, // 1:1 for circular profile picture
                             viewMode: 1,
@@ -238,9 +334,9 @@
         }
 
         if (btnCancelCrop) {
-            btnCancelCrop.addEventListener('click', function() {
+            btnCancelCrop.addEventListener('click', function () {
                 cropModal.style.display = 'none';
-                fileInput.value = ''; 
+                fileInput.value = '';
                 hiddenB64Input.value = '';
                 if (cropper) cropper.destroy();
                 if (statusText) {
@@ -251,7 +347,7 @@
         }
 
         if (btnSaveCrop) {
-            btnSaveCrop.addEventListener('click', function() {
+            btnSaveCrop.addEventListener('click', function () {
                 if (cropper) {
                     const canvas = cropper.getCroppedCanvas({
                         width: 400,
@@ -259,7 +355,7 @@
                     });
                     hiddenB64Input.value = canvas.toDataURL('image/png');
                     cropModal.style.display = 'none';
-                    
+
                     if (statusText) {
                         statusText.innerHTML = "<i class='ph ph-check-circle' style='color:#4ECDC4;'></i> Foto profil telah di-crop dan siap disimpan.";
                         statusText.style.color = "#4ECDC4";
@@ -281,26 +377,27 @@
                     items.forEach(item => {
                         newOrder.push(item.getAttribute('data-id'));
                     });
-                    
+
                     fetch("{{ url_for('reorder_links') }}", {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({order: newOrder})
+                        body: JSON.stringify({ order: newOrder })
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status !== 'success') {
-                            alert('Gagal menyimpan urutan baru.');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status !== 'success') {
+                                alert('Gagal menyimpan urutan baru.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
                 }
             });
         }
     </script>
 </body>
+
 </html>
