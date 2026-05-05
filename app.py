@@ -100,14 +100,6 @@ def update_profile():
     # Handle Background Picture
     background_picture_file = request.files.get('background_picture')
     background_picture_name = None
-    if background_picture_file and allowed_file(background_picture_file.filename):
-        file_ext = background_picture_file.filename.rsplit('.', 1)[1].lower()
-        b64_img = base64.b64encode(background_picture_file.read()).decode('utf-8')
-        background_picture_name = f"data:image/{file_ext};base64,{b64_img}"
-        
-    tiktok_url = request.form.get('tiktok_url')
-    instagram_url = request.form.get('instagram_url')
-    facebook_url = request.form.get('facebook_url')
     
     bg_type = request.form.get('bg_type')
     
@@ -115,17 +107,28 @@ def update_profile():
         bg_color_1 = request.form.get('bg_color_1_solid')
         bg_color_2 = None
         bg_animation = 'none'
+        background_picture_name = '' # Clear image when switching to solid
     elif bg_type == 'gradient':
         bg_color_1 = request.form.get('bg_color_1_grad')
         bg_color_2 = request.form.get('bg_color_2')
         bg_animation = request.form.get('bg_animation')
+        background_picture_name = '' # Clear image when switching to gradient
     else: # Image
         bg_color_1 = None
         bg_color_2 = None
         bg_animation = 'none'
+        # Only update if a new file is provided
+        if background_picture_file and allowed_file(background_picture_file.filename):
+            file_ext = background_picture_file.filename.rsplit('.', 1)[1].lower()
+            b64_img = base64.b64encode(background_picture_file.read()).decode('utf-8')
+            background_picture_name = f"data:image/{file_ext};base64,{b64_img}"
         
     bg_gradient_direction = request.form.get('bg_gradient_direction')
 
+    tiktok_url = request.form.get('tiktok_url')
+    instagram_url = request.form.get('instagram_url')
+    facebook_url = request.form.get('facebook_url')
+    
     # Update DB
     database.update_settings(
         profile_name=profile_name if profile_name else None,
