@@ -45,6 +45,11 @@ def init_db():
                 profile_name TEXT NOT NULL,
                 profile_picture TEXT,
                 background_picture TEXT,
+                bg_type TEXT DEFAULT 'image',
+                bg_color_1 TEXT DEFAULT '#ffffff',
+                bg_color_2 TEXT DEFAULT '#000000',
+                bg_gradient_direction TEXT DEFAULT '135deg',
+                bg_animation TEXT DEFAULT 'none',
                 tiktok_url TEXT,
                 instagram_url TEXT,
                 facebook_url TEXT
@@ -65,6 +70,11 @@ def init_db():
                 profile_name TEXT NOT NULL,
                 profile_picture TEXT,
                 background_picture TEXT,
+                bg_type TEXT DEFAULT 'image',
+                bg_color_1 TEXT DEFAULT '#ffffff',
+                bg_color_2 TEXT DEFAULT '#000000',
+                bg_gradient_direction TEXT DEFAULT '135deg',
+                bg_animation TEXT DEFAULT 'none',
                 tiktok_url TEXT,
                 instagram_url TEXT,
                 facebook_url TEXT
@@ -132,7 +142,10 @@ def get_settings():
     docs = query_select("SELECT * FROM settings LIMIT 1")
     return docs[0] if docs else None
 
-def update_settings(profile_name=None, profile_picture=None, background_picture=None, tiktok_url=None, instagram_url=None, facebook_url=None):
+def update_settings(profile_name=None, profile_picture=None, background_picture=None, 
+                    tiktok_url=None, instagram_url=None, facebook_url=None,
+                    bg_type=None, bg_color_1=None, bg_color_2=None, 
+                    bg_gradient_direction=None, bg_animation=None):
     fields = []
     params = []
     
@@ -154,6 +167,21 @@ def update_settings(profile_name=None, profile_picture=None, background_picture=
     if facebook_url is not None:
         fields.append("facebook_url = ?")
         params.append(facebook_url)
+    if bg_type is not None:
+        fields.append("bg_type = ?")
+        params.append(bg_type)
+    if bg_color_1 is not None:
+        fields.append("bg_color_1 = ?")
+        params.append(bg_color_1)
+    if bg_color_2 is not None:
+        fields.append("bg_color_2 = ?")
+        params.append(bg_color_2)
+    if bg_gradient_direction is not None:
+        fields.append("bg_gradient_direction = ?")
+        params.append(bg_gradient_direction)
+    if bg_animation is not None:
+        fields.append("bg_animation = ?")
+        params.append(bg_animation)
         
     if fields:
         sql = "UPDATE settings SET " + ", ".join(fields)

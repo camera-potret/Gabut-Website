@@ -109,6 +109,12 @@ def update_profile():
     instagram_url = request.form.get('instagram_url')
     facebook_url = request.form.get('facebook_url')
     
+    bg_type = request.form.get('bg_type')
+    bg_color_1 = request.form.get('bg_color_1_solid') or request.form.get('bg_color_1_grad')
+    bg_color_2 = request.form.get('bg_color_2')
+    bg_gradient_direction = request.form.get('bg_gradient_direction')
+    bg_animation = request.form.get('bg_animation')
+
     # Update DB
     database.update_settings(
         profile_name=profile_name if profile_name else None,
@@ -116,7 +122,12 @@ def update_profile():
         background_picture=background_picture_name,
         tiktok_url=tiktok_url,
         instagram_url=instagram_url,
-        facebook_url=facebook_url
+        facebook_url=facebook_url,
+        bg_type=bg_type,
+        bg_color_1=bg_color_1,
+        bg_color_2=bg_color_2,
+        bg_gradient_direction=bg_gradient_direction,
+        bg_animation=bg_animation
     )
     
     flash('Profil berhasil diperbarui!', 'success')

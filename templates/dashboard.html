@@ -94,19 +94,86 @@
                     </div>
 
                     <div class="form-group mt-2">
-                        <label>Background Baru <small>(opsional)</small></label>
-                        <div class="glass-input-group">
-                            <i class="ph ph-monitor"></i>
-                            <input type="file" name="background_picture" accept="image/*" class="glass-input file-input"
-                                style="padding-left: 40px; padding-top: 13px;">
+                        <label>Tipe Background</label>
+                        <div class="bg-type-selector" style="display: flex; gap: 5px; margin-bottom: 10px;">
+                            <input type="radio" name="bg_type" value="solid" id="type_solid" {% if settings and
+                                settings.get('bg_type')=='solid' %}checked{% endif %} style="display:none;">
+                            <label for="type_solid" class="glass-button small-btn type-label">Solid</label>
+
+                            <input type="radio" name="bg_type" value="gradient" id="type_gradient" {% if settings and
+                                settings.get('bg_type')=='gradient' %}checked{% endif %} style="display:none;">
+                            <label for="type_gradient" class="glass-button small-btn type-label">Gradient</label>
+
+                            <input type="radio" name="bg_type" value="image" id="type_image" {% if not settings or
+                                settings.get('bg_type')=='image' %}checked{% endif %} style="display:none;">
+                            <label for="type_image" class="glass-button small-btn type-label">Upload File</label>
                         </div>
-                        {% if settings and settings['background_picture'] %}
-                        <small class="text-muted mt-1 d-block">
-                            Background tersimpan: <br>
-                            <img src="{{ settings['background_picture'] }}" height="50"
-                                style="border-radius: 4px; margin-top: 5px; object-fit: cover;">
-                        </small>
-                        {% endif %}
+                    </div>
+
+                    <!-- Solid Color Section -->
+                    <div id="section_solid" class="bg-section" style="display: none;">
+                        <div class="form-group mb-2">
+                            <label>Warna Background</label>
+                            <input type="color" name="bg_color_1"
+                                value="{{ settings['bg_color_1'] if settings and settings.get('bg_color_1') else '#ffffff' }}"
+                                class="glass-input color-picker">
+                        </div>
+                    </div>
+
+                    <!-- Gradient Section -->
+                    <div id="section_gradient" class="bg-section" style="display: none;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label>Warna 1</label>
+                                <input type="color" name="bg_color_1_grad"
+                                    value="{{ settings['bg_color_1'] if settings and settings.get('bg_color_1') else '#ffffff' }}"
+                                    class="glass-input color-picker">
+                            </div>
+                            <div class="form-group">
+                                <label>Warna 2</label>
+                                <input type="color" name="bg_color_2"
+                                    value="{{ settings['bg_color_2'] if settings and settings.get('bg_color_2') else '#000000' }}"
+                                    class="glass-input color-picker">
+                            </div>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Arah Gradient (sudut, contoh: 135deg)</label>
+                            <input type="text" name="bg_gradient_direction"
+                                value="{{ settings['bg_gradient_direction'] if settings and settings.get('bg_gradient_direction') else '135deg' }}"
+                                class="glass-input" placeholder="135deg atau to right">
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Animasi Gradient</label>
+                            <select name="bg_animation" class="glass-input">
+                                <option value="none" {% if settings and settings.get('bg_animation')=='none'
+                                    %}selected{% endif %}>Tanpa Animasi</option>
+                                <option value="flow" {% if settings and settings.get('bg_animation')=='flow'
+                                    %}selected{% endif %}>Flow (Smooth)</option>
+                                <option value="pulse" {% if settings and settings.get('bg_animation')=='pulse'
+                                    %}selected{% endif %}>Pulse (Soft Glow)</option>
+                                <option value="wave" {% if settings and settings.get('bg_animation')=='wave'
+                                    %}selected{% endif %}>Wave (Dinamis)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Image Section -->
+                    <div id="section_image" class="bg-section" style="display: none;">
+                        <div class="form-group mb-2">
+                            <label>Background Baru <small>(opsional)</small></label>
+                            <div class="glass-input-group">
+                                <i class="ph ph-monitor"></i>
+                                <input type="file" name="background_picture" accept="image/*"
+                                    class="glass-input file-input" style="padding-left: 40px; padding-top: 13px;">
+                            </div>
+                            {% if settings and settings['background_picture'] %}
+                            <small class="text-muted mt-1 d-block">
+                                Background tersimpan: <br>
+                                <img src="{{ settings['background_picture'] }}" height="50"
+                                    style="border-radius: 4px; margin-top: 5px; object-fit: cover;">
+                            </small>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <div class="form-group mt-2">
@@ -283,6 +350,36 @@
         .drag-handle:hover {
             color: #fff !important;
         }
+
+        /* Color Picker styles */
+        .color-picker {
+            height: 50px;
+            padding: 5px !important;
+            cursor: pointer;
+        }
+
+        .type-label {
+            flex: 1;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .bg-type-selector input[type="radio"]:checked+label {
+            background: var(--primary-color, #4ECDC4) !important;
+            color: white !important;
+            border-color: var(--primary-color, #4ECDC4);
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .bg-section {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
     </style>
     <script>
         function openEditModal(actionUrl, title, url) {
@@ -308,6 +405,28 @@
         const hiddenB64Input = document.getElementById('cropped_profile_b64');
         const statusText = document.getElementById('profile_status_text');
         let cropper = null;
+
+        // Background Type Logic
+        const bgTypeInputs = document.querySelectorAll('input[name="bg_type"]');
+        const bgSections = {
+            'solid': document.getElementById('section_solid'),
+            'gradient': document.getElementById('section_gradient'),
+            'image': document.getElementById('section_image')
+        };
+
+        function updateBgSections() {
+            const selectedType = document.querySelector('input[name="bg_type"]:checked').value;
+            Object.keys(bgSections).forEach(type => {
+                bgSections[type].style.display = (type === selectedType) ? 'block' : 'none';
+            });
+        }
+
+        bgTypeInputs.forEach(input => {
+            input.addEventListener('change', updateBgSections);
+        });
+
+        // Initialize state
+        document.addEventListener('DOMContentLoaded', updateBgSections);
 
         if (fileInput) {
             fileInput.addEventListener('change', function (e) {
