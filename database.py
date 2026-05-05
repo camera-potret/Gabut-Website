@@ -89,10 +89,36 @@ def init_db():
             )
         ''')
 
+    # Update schema if columns missing (Migration)
+    new_cols = {
+        'bg_type': "TEXT DEFAULT 'image'",
+        'bg_color_1': "TEXT DEFAULT '#ffffff'",
+        'bg_color_2': "TEXT DEFAULT '#000000'",
+        'bg_gradient_direction': "TEXT DEFAULT '135deg'",
+        'bg_animation': "TEXT DEFAULT 'none'"
+    }
+    
+    for col_name, col_def in new_cols.items():
+        try:
+            if db_type == 'postgres':
+                cursor.execute(f"ALTER TABLE settings ADD COLUMN IF NOT EXISTS {col_name} {col_def.split(' ')[0]} DEFAULT {col_def.split(' DEFAULT ')[1]}")
+            else:
+                # SQLite doesn't support ADD COLUMN IF NOT EXISTS easily, so we check first
+                cursor.execute(f"PRAGMA table_info(settings)")
+                existing_cols = [row[1] for row in cursor.fetchall()]
+                if col_name not in existing_cols:
+                    cursor.execute(f"ALTER TABLE settings ADD COLUMN {col_name} {col_def}")
+        except Exception as e:
+            print(f"Error adding column {col_name}: {e}")
+
     # Seed Default Settings if not exists
-    cursor.execute("SELECT COUNT(*) FROM settings")
+    if db_type == 'postgres':
+        cursor.execute("SELECT COUNT(*) FROM settings")
+    else:
+        cursor.execute("SELECT COUNT(*) as cnt FROM settings")
+        
     row = cursor.fetchone()
-    count = row['cnt'] if hasattr(row, 'keys') and 'cnt' in row.keys() else row[0]
+    count = row[0] if row else 0
     
     if count == 0:
         if db_type == 'postgres':

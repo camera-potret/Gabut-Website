@@ -110,10 +110,21 @@ def update_profile():
     facebook_url = request.form.get('facebook_url')
     
     bg_type = request.form.get('bg_type')
-    bg_color_1 = request.form.get('bg_color_1_solid') or request.form.get('bg_color_1_grad')
-    bg_color_2 = request.form.get('bg_color_2')
+    
+    if bg_type == 'solid':
+        bg_color_1 = request.form.get('bg_color_1_solid')
+        bg_color_2 = None
+        bg_animation = 'none'
+    elif bg_type == 'gradient':
+        bg_color_1 = request.form.get('bg_color_1_grad')
+        bg_color_2 = request.form.get('bg_color_2')
+        bg_animation = request.form.get('bg_animation')
+    else: # Image
+        bg_color_1 = None
+        bg_color_2 = None
+        bg_animation = 'none'
+        
     bg_gradient_direction = request.form.get('bg_gradient_direction')
-    bg_animation = request.form.get('bg_animation')
 
     # Update DB
     database.update_settings(
